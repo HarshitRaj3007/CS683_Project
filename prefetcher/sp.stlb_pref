@@ -1,0 +1,94 @@
+
+#include "cache.h"
+#define IP_TRACKER_COUNT 64 
+
+class StridePrefetcher{
+public:
+    uint64_t last_added_address1,last_added_address2,last_added_address3,last_added_address4;
+    StridePrefetcher(){
+        last_added_address1 = 0;
+        last_added_address2 = 0;
+        last_added_address3 = 0;
+        last_added_address4 = 0;
+    }
+    void stride_prefetch_operate(uint64_t addr){
+        uint64_t cl_addr = addr >> LOG2_PAGE_SIZE;
+
+        uint64_t pf_address1 = (cl_addr - 2) << LOG2_PAGE_SIZE;
+        uint64_t pf_address2 = (cl_addr - 1) << LOG2_PAGE_SIZE;
+        uint64_t pf_address3 = (cl_addr + 1) << LOG2_PAGE_SIZE;
+        uint64_t pf_address4 = (cl_addr + 2) << LOG2_PAGE_SIZE;
+
+        last_added_address1 = 0;
+        last_added_address2 = 0;
+        last_added_address3 = 0;
+        last_added_address4 = 0;
+
+        // if ((pf_address1 >> LOG2_PAGE_SIZE) == (addr >> LOG2_PAGE_SIZE)){
+            last_added_address1 = pf_address1;
+        // }
+        // if ((pf_address2 >> LOG2_PAGE_SIZE) == (addr >> LOG2_PAGE_SIZE)){
+            last_added_address2 = pf_address2;
+        // }
+        //if ((pf_address3 >> LOG2_PAGE_SIZE) == (addr >> LOG2_PAGE_SIZE)){
+            last_added_address3 = pf_address3;
+        // }
+        // if ((pf_address4 >> LOG2_PAGE_SIZE) == (addr >> LOG2_PAGE_SIZE)){
+            last_added_address4 = pf_address4;
+        // }
+    }
+    // void prefetch(uint64_t ip, uint64_t prefetch_id, uint8_t instruction){
+    //     if(last_added_address1){
+    //         prefetch_translation(ip, last_added_address1, (int)2, 0, prefetch_id, instruction);
+    //     }
+    //     if(last_added_address2){
+    //         prefetch_translation(ip, last_added_address2, (int)2, 0, prefetch_id, instruction);
+    //     }
+    //     if(last_added_address3){
+    //         prefetch_translation(ip, last_added_address3, (int)2, 0, prefetch_id, instruction);
+    //     }
+    //     if(last_added_address4){
+    //         prefetch_translation(ip, last_added_address4, (int)2, 0, prefetch_id, instruction);
+    //     }
+    // }
+};
+
+StridePrefetcher P1;
+
+void CACHE::stlb_prefetcher_initialize() 
+{
+
+}
+
+void CACHE::stlb_prefetcher_operate(uint64_t addr, uint64_t ip, uint8_t cache_hit, uint8_t type, uint64_t prefetch_id, uint8_t instruction)
+{   
+    // if(cache_hit){
+    //     return;
+    // }
+    P1.stride_prefetch_operate(addr);
+    if(P1.last_added_address1){
+        prefetch_translation(ip, P1.last_added_address1, (int)2, 0, prefetch_id, instruction);
+    }
+    if(P1.last_added_address2){
+        prefetch_translation(ip, P1.last_added_address2, (int)2, 0, prefetch_id, instruction);
+    }
+    if(P1.last_added_address3){
+        prefetch_translation(ip, P1.last_added_address3, (int)2, 0, prefetch_id, instruction);
+    }
+    if(P1.last_added_address4){
+        prefetch_translation(ip, P1.last_added_address4, (int)2, 0, prefetch_id, instruction);
+    }
+    return;
+}
+
+
+void CACHE::stlb_prefetcher_cache_fill(uint64_t addr, uint32_t set, uint32_t way, uint8_t prefetch, uint64_t evicted_addr, uint32_t metadata_in)
+{
+    return;
+}
+
+void CACHE::stlb_prefetcher_final_stats()
+{
+    cout << "CPU " << cpu << " STLB arbitrary stride prefetcher final stats" << endl;
+	// cout << "Degree: " << PREFETCH_DEGREE << endl;
+}

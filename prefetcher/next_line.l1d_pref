@@ -25,7 +25,7 @@ void CACHE::l1d_prefetcher_operate(uint64_t addr, uint64_t ip, uint8_t cache_hit
         if ((pf_address >> LOG2_PAGE_SIZE) != (addr >> LOG2_PAGE_SIZE))
             break;
             
-        prefetch_line(ip, addr, pf_address, FILL_L1, 0);
+        prefetch_line(ip, addr, pf_address, FILL_L1, 0, 0, 0);
     }
     return;
 }

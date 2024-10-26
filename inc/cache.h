@@ -35,21 +35,21 @@ extern uint32_t PAGE_TABLE_LATENCY, SWAP_LATENCY;
 #define IS_PQ 2
 
 // INSTRUCTION TLB
-#define ITLB_SET 16
+#define ITLB_SET 64 //changed
 #define ITLB_WAY 4
 #define ITLB_RQ_SIZE 16
 #define ITLB_WQ_SIZE 16
 #define ITLB_PQ_SIZE 8
-#define ITLB_MSHR_SIZE 8
+#define ITLB_MSHR_SIZE 4 //changed
 #define ITLB_LATENCY 1
 
 // DATA TLB
-#define DTLB_SET 16
+#define DTLB_SET 64 //changed
 #define DTLB_WAY 4
 #define DTLB_RQ_SIZE 16
 #define DTLB_WQ_SIZE 16
 #define DTLB_PQ_SIZE 8
-#define DTLB_MSHR_SIZE 8	
+#define DTLB_MSHR_SIZE 4 //changed	
 #define DTLB_LATENCY 1
 
 //@Vasudha: Coding DTLB prefetch buffer
@@ -67,8 +67,8 @@ extern uint32_t PAGE_TABLE_LATENCY, SWAP_LATENCY;
 #define STLB_WAY 12
 #define STLB_RQ_SIZE 32
 #define STLB_WQ_SIZE 32
-#define STLB_PQ_SIZE 8
-#define STLB_MSHR_SIZE 16
+#define STLB_PQ_SIZE 16 //changed
+#define STLB_MSHR_SIZE 4 //changed
 #define STLB_LATENCY 8
 
 // L1 INSTRUCTION CACHE
@@ -78,16 +78,16 @@ extern uint32_t PAGE_TABLE_LATENCY, SWAP_LATENCY;
 #define L1I_WQ_SIZE 64 
 #define L1I_PQ_SIZE 16
 #define L1I_MSHR_SIZE 8
-#define L1I_LATENCY 4
+#define L1I_LATENCY 1 //changed
 
 // L1 DATA CACHE
 #define L1D_SET 64
-#define L1D_WAY 12
+#define L1D_WAY 8 //change
 #define L1D_RQ_SIZE 64
 #define L1D_WQ_SIZE 64 
 #define L1D_PQ_SIZE 16     //	Neelu: Changed from 8 to 16.
 #define L1D_MSHR_SIZE 16
-#define L1D_LATENCY 5
+#define L1D_LATENCY 4 //changed
 
 // L2 CACHE
 #define L2C_SET 1024
@@ -96,7 +96,7 @@ extern uint32_t PAGE_TABLE_LATENCY, SWAP_LATENCY;
 #define L2C_WQ_SIZE 32
 #define L2C_PQ_SIZE 16	//Neelu: changing from 16 to 32
 #define L2C_MSHR_SIZE 32
-#define L2C_LATENCY 10  // 5 (L1I or L1D) + 10 = 15 cycles
+#define L2C_LATENCY 8  // 5 (L1I or L1D) + 10 = 15 cycles //changed
 
 // LAST LEVEL CACHE
 #define LLC_SET NUM_CPUS*2048

@@ -1,0 +1,79 @@
+
+#include "cache.h"
+#define IP_TRACKER_COUNT 64 
+
+class H2Prefetcher{
+public:
+    uint64_t vaddr1,vaddr2;
+    uint64_t last_added_address1,last_added_address2;
+
+    H2Prefetcher(){
+        vaddr1 = 0;
+        vaddr2 = 0;
+        last_added_address1 = 0;
+        last_added_address2 = 0;
+    }
+    void H2P_prefetch_operate(uint64_t addr){
+        uint64_t cl_addr = addr >> LOG2_PAGE_SIZE;
+        last_added_address1 = 0;
+        last_added_address2 = 0;
+        if(vaddr1){
+            uint64_t dist1 = (vaddr2 - vaddr1) >> LOG2_PAGE_SIZE;
+            uint64_t pf_address1 = (cl_addr + dist1) << LOG2_PAGE_SIZE;
+            last_added_address1 = pf_address1;
+
+        }
+        if(vaddr2){
+            uint64_t dist2 = (addr - vaddr2) >> LOG2_PAGE_SIZE;
+            uint64_t pf_address2 = (cl_addr + dist2) << LOG2_PAGE_SIZE;
+            last_added_address2 = pf_address2;
+
+        }
+        vaddr1 = vaddr2;
+        vaddr2 = addr;
+    }
+    // void prefetch(uint64_t ip, uint64_t prefetch_id, uint8_t instruction){
+    //     if(last_added_address1){
+    //         prefetch_translation(ip, last_added_address1, (int)2, 0, prefetch_id, instruction);
+    //     }
+    //     if(last_added_address2){
+    //         prefetch_translation(ip, last_added_address2, (int)2, 0, prefetch_id, instruction);
+    //     }
+    // }
+};
+
+
+H2Prefetcher P0;
+
+void CACHE::stlb_prefetcher_initialize() 
+{
+
+}
+
+void CACHE::stlb_prefetcher_operate(uint64_t addr, uint64_t ip, uint8_t cache_hit, uint8_t type, uint64_t prefetch_id, uint8_t instruction)
+{   
+    // if(cache_hit){
+    //     return;
+    // }
+    P0.H2P_prefetch_operate(addr);
+    if(P0.last_added_address1){
+        prefetch_translation(ip, P0.last_added_address1, (int)2, 0, prefetch_id, instruction);
+    }
+    if(P0.last_added_address2){
+        prefetch_translation(ip, P0.last_added_address2, (int)2, 0, prefetch_id, instruction);
+    }
+    
+    return;
+}
+
+
+void CACHE::stlb_prefetcher_cache_fill(uint64_t addr, uint32_t set, uint32_t way, uint8_t prefetch, uint64_t evicted_addr, uint32_t metadata_in)
+{
+    return;
+}
+
+void CACHE::stlb_prefetcher_final_stats()
+{
+    cout << "CPU " << cpu << " STLB arbitrary stride prefetcher final stats" << endl;
+	// cout << "Degree: " << PREFETCH_DEGREE << endl;
+}

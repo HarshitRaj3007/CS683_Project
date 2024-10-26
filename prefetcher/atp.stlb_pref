@@ -70,102 +70,102 @@ public:
 
 class StridePrefetcher{
 public:
-    Queue* fake_pq0;
-    uint64_t last_added_address1,last_added_address2,last_added_address4,last_added_address4;
+    Queue* fake_pq;
+    uint64_t last_added_address1,last_added_address2,last_added_address3,last_added_address4;
     StridePrefetcher(){
-        fake_pq0 = new Queue(16);
+        fake_pq = new Queue(16);
         last_added_address1 = 0;
         last_added_address2 = 0;
         last_added_address3 = 0;
         last_added_address4 = 0;
     }
     void stride_prefetch_operate(uint64_t addr){
-        uint64_t cl_addr = addr >> LOG2_BLOCK_SIZE;
+        uint64_t cl_addr = addr >> LOG2_PAGE_SIZE;
 
-        uint64_t pf_address1 = (cl_addr - 2) << LOG2_BLOCK_SIZE;
-        uint64_t pf_address2 = (cl_addr - 1) << LOG2_BLOCK_SIZE;
-        uint64_t pf_address3 = (cl_addr + 1) << LOG2_BLOCK_SIZE;
-        uint64_t pf_address4 = (cl_addr + 2) << LOG2_BLOCK_SIZE;
+        uint64_t pf_address1 = (cl_addr - 2) << LOG2_PAGE_SIZE;
+        uint64_t pf_address2 = (cl_addr - 1) << LOG2_PAGE_SIZE;
+        uint64_t pf_address3 = (cl_addr + 1) << LOG2_PAGE_SIZE;
+        uint64_t pf_address4 = (cl_addr + 2) << LOG2_PAGE_SIZE;
 
         last_added_address1 = 0;
         last_added_address2 = 0;
         last_added_address3 = 0;
         last_added_address4 = 0;
 
-        if ((pf_address1 >> LOG2_PAGE_SIZE) == (addr >> LOG2_PAGE_SIZE)){
-            fake_pq0->push(pf_address1);
+        //if ((pf_address1 >> LOG2_PAGE_SIZE) == (addr >> LOG2_PAGE_SIZE)){
+            fake_pq->push(pf_address1);
             last_added_address1 = pf_address1;
-        }
-        if ((pf_address2 >> LOG2_PAGE_SIZE) == (addr >> LOG2_PAGE_SIZE)){
-            fake_pq0->push(pf_address2);
+       // }
+        //if ((pf_address2 >> LOG2_PAGE_SIZE) == (addr >> LOG2_PAGE_SIZE)){
+            fake_pq->push(pf_address2);
             last_added_address2 = pf_address2;
-        }
-        if ((pf_address3 >> LOG2_PAGE_SIZE) == (addr >> LOG2_PAGE_SIZE)){
-            fake_pq0->push(pf_address3);
+        //}
+        //if ((pf_address3 >> LOG2_PAGE_SIZE) == (addr >> LOG2_PAGE_SIZE)){
+            fake_pq->push(pf_address3);
             last_added_address3 = pf_address3;
-        }
-        if ((pf_address4 >> LOG2_PAGE_SIZE) == (addr >> LOG2_PAGE_SIZE)){
-            fake_pq0->push(pf_address4);
+        //}
+        //if ((pf_address4 >> LOG2_PAGE_SIZE) == (addr >> LOG2_PAGE_SIZE)){
+            fake_pq->push(pf_address4);
             last_added_address4 = pf_address4;
-        }
+        //}
     }
-    void prefetch(uint64_t ip, uint64_t prefetch_id, uint8_t instruction){
-        if(last_added_address1){
-            prefetch_translation(ip, last_added_address1, (int)2, 0, prefetch_id, instruction);
-        }
-        if(last_added_address2){
-            prefetch_translation(ip, last_added_address2, (int)2, 0, prefetch_id, instruction);
-        }
-        if(last_added_address3){
-            prefetch_translation(ip, last_added_address3, (int)2, 0, prefetch_id, instruction);
-        }
-        if(last_added_address4){
-            prefetch_translation(ip, last_added_address4, (int)2, 0, prefetch_id, instruction);
-        }
-    }
+    // void prefetch(uint64_t ip, uint64_t prefetch_id, uint8_t instruction){
+    //     if(last_added_address1){
+    //         prefetch_translation(ip, last_added_address1, (int)2, 0, prefetch_id, instruction);
+    //     }
+    //     if(last_added_address2){
+    //         prefetch_translation(ip, last_added_address2, (int)2, 0, prefetch_id, instruction);
+    //     }
+    //     if(last_added_address3){
+    //         prefetch_translation(ip, last_added_address3, (int)2, 0, prefetch_id, instruction);
+    //     }
+    //     if(last_added_address4){
+    //         prefetch_translation(ip, last_added_address4, (int)2, 0, prefetch_id, instruction);
+    //     }
+    // }
 };
 
 class H2Prefetcher{
 public:
-    Queue* fake_pq1;
+    Queue* fake_pq;
     uint64_t vaddr1,vaddr2;
     uint64_t last_added_address1,last_added_address2;
 
     H2Prefetcher(){
-        fake_pq1 = new Queue(16);
+        fake_pq = new Queue(16);
         vaddr1 = 0;
         vaddr2 = 0;
         last_added_address1 = 0;
         last_added_address2 = 0;
     }
     void H2P_prefetch_operate(uint64_t addr){
-        uint64_t cl_addr = addr >> LOG2_BLOCK_SIZE;
+        uint64_t cl_addr = addr >> LOG2_PAGE_SIZE;
         last_added_address1 = 0;
         last_added_address2 = 0;
         if(vaddr1){
-            uint64_t dist1 = (vaddr2 >> LOG2_ - vaddr1);
-            uint64_t pf_address1 = (cl_addr + dist1) << LOG2_BLOCK_SIZE;
-            fake_pq1->push(pf_address1);
+            uint64_t dist1 = (vaddr2 - vaddr1) >> LOG2_PAGE_SIZE;
+            uint64_t pf_address1 = (cl_addr + dist1) << LOG2_PAGE_SIZE;
+            fake_pq->push(pf_address1);
             last_added_address1 = pf_address1;
         }
         if(vaddr2){
-            uint64_t dist2 = (addr - vaddr2);
-            uint64_t pf_address2 = (cl_addr + dist2) << LOG2_BLOCK_SIZE;
-            fake_pq1->push(pf_address2);
+            uint64_t dist2 = (addr - vaddr2) >> LOG2_PAGE_SIZE;
+            uint64_t pf_address2 = (cl_addr + dist2) << LOG2_PAGE_SIZE;
+            fake_pq->push(pf_address2);
             last_added_address2 = pf_address2;
 
         }
         vaddr1 = vaddr2;
         vaddr2 = addr;
     }
-    void prefetch(uint64_t ip, uint64_t prefetch_id, uint8_t instruction){
-        if(last_added_address1){
-            prefetch_translation(ip, last_added_address1, (int)2, 0, prefetch_id, instruction);
-        }
-        if(last_added_address2){
-            prefetch_translation(ip, last_added_address2, (int)2, 0, prefetch_id, instruction);
-        }
-    }
+    // void prefetch(uint64_t ip, uint64_t prefetch_id, uint8_t instruction){
+    //     if(last_added_address1){
+    //         prefetch_translation(ip, last_added_address1, (int)2, 0, prefetch_id, instruction);
+    //     }
+    //     if(last_added_address2){
+    //         prefetch_translation(ip, last_added_address2, (int)2, 0, prefetch_id, instruction);
+    //     }
+    // }
 };
 
 class IP_TRACKER {
@@ -217,28 +217,28 @@ class IP_TRACKER {
 
 class MASP{
 public:
-    Queue* fake_pq2;
+    Queue* fake_pq;
     IP_TRACKER trackers[IP_TRACKER_COUNT];
     uint64_t last_added_address1;
     uint64_t last_added_address2;
 
     MASP(){
-        fake_pq2 = new Queue(16);
+        fake_pq = new Queue(16);
         last_added_address1 = 0;
         last_added_address2 = 0;
     }
 
-    void MASP_operate(uint64_t vaddr, uint64_t ip){
+    void MASP_operate(uint64_t addr, uint64_t ip){
         int hash_idx = ip % IP_TRACKER_COUNT; // Hashing the IP
 
         last_added_address1 = 0;
         last_added_address2 = 0;
         // if(to_prefetch) {
         uint64_t pf_address1 = addr + (trackers[hash_idx].get_stride() << LOG2_PAGE_SIZE);
-        uint64_t pf_address2 = addr + (addr >> LOG2_PAGE_SIZE - trackers[hash_idx].prev_addr >> LOG2_PAGE_SIZE);
+        uint64_t pf_address2 = addr + (addr >> LOG2_PAGE_SIZE - trackers[hash_idx].prev_addr >> LOG2_PAGE_SIZE) << LOG2_PAGE_SIZE;
         trackers[hash_idx].update(ip, addr);
-        fake_pq2->push(pf_address1);
-        fake_pq2->push(pf_address2);
+        fake_pq->push(pf_address1);
+        fake_pq->push(pf_address2);
         last_added_address1 = pf_address1;
         last_added_address2 = pf_address2;
             // uint64_t pf_address2 = addr + (vaddr - trackers[hash_idx]);
@@ -246,36 +246,39 @@ public:
         // }
     }
 
-    void prefetch(uint64_t ip, uint64_t prefetch_id, uint8_t instruction){
-        if(last_added_address1){
-            prefetch_translation(ip, last_added_address1, (int)2, 0, prefetch_id, instruction);
-            prefetch_translation(ip, last_added_address2, (int)2, 0, prefetch_id, instruction);
-        }
-    }
+    //void prefetch(uint64_t ip, uint64_t prefetch_id, uint8_t instruction){
+        //if(last_added_address1){
+         //   prefetch_translation(ip, last_added_address1, (int)2, 0, prefetch_id, instruction);
+       // }
+        //if(last_added_address2){
+           // prefetch_translation(ip, last_added_address2, (int)2, 0, prefetch_id, instruction);
+        //}
+
+    //}
 };
 
 int enable_pref = 0;
 int select_1 = 0;
 int select_2 = 0;
 
-StridePrefetcher P0;
-H2Prefetcher P1;
+H2Prefetcher P0;
+StridePrefetcher P1;
 MASP P2;
-// Queue fake_pq0(16), fake_pq1(16), fake_pq2(16);
+// Queue fake_pq(16), fake_pq(16), fake_pq(16);
 
 void update_counters(uint64_t vaddr){
-    int f0 = P0.fake_pq0->find(vaddr);
-    int f1 = P1.fake_pq1->find(vaddr);
-    int f2 = P2.fake_pq2->find(vaddr);
+    int f0 = P0.fake_pq->find(vaddr);
+    int f1 = P1.fake_pq->find(vaddr);
+    int f2 = P2.fake_pq->find(vaddr);
 
-    if(f0){
-        if(f1){
-            if(!f2){
+    if(f0 >= 0){
+        if(f1 >= 0){
+            if(f2 == -1){
                 select_2 = max(select_2 - 1, 0);
             }
         }
         else{
-            if(f2){
+            if(f2 >= 0){
                 select_2 = min(select_2 + 1, 3);
             }
             else{
@@ -285,18 +288,16 @@ void update_counters(uint64_t vaddr){
         enable_pref = min(enable_pref + 1, 255);
     }
     else{
-        if(f1){
-            if(!f2){
-                if(select_2 > 0){
-                    select_2 = max(select_2 - 1, 0);
-                }
+        if(f1 >= 0){
+            if(f2 == -1){
+                select_2 = max(select_2 - 1, 0);
             }
             
             select_1 = max(select_1 - 1, 0);
             enable_pref = min(enable_pref + 1, 255);
         }
         else{
-            if(f2){
+            if(f2 >= 0){
                 enable_pref = min(enable_pref + 1, 255);
                 select_1 = max(select_1 - 1, 0);
                 select_2 = min(select_2 + 1, 3);
@@ -317,19 +318,19 @@ int select_prefetcher(){
             return 0;
         } 
         else if (is_msb_set_select2) {
-            return 1;
+            return 2;
         } 
         else {
-            return 2;
+            return 1;
         }
     }
     return -1;
 }
 
 void update_fake_queues(uint64_t vaddr,  uint64_t ip){
-    P0->stride_prefetch_operate(vaddr);
-    P1->H2P_prefetch_operate(vaddr);
-    P2->MASP_operate(vaddr, ip);
+    P0.H2P_prefetch_operate(vaddr);
+    P1.stride_prefetch_operate(vaddr);
+    P2.MASP_operate(vaddr, ip);
 }
 
 
@@ -340,20 +341,44 @@ void CACHE::stlb_prefetcher_initialize()
 
 void CACHE::stlb_prefetcher_operate(uint64_t addr, uint64_t ip, uint8_t cache_hit, uint8_t type, uint64_t prefetch_id, uint8_t instruction)
 {   
-    if(cache_hit){
-        return;
-    }
+    // if(cache_hit){
+    //     return;
+    // }
     update_counters(addr);
     int prefetcher_chosen = select_prefetcher();
 
     if(prefetcher_chosen == 0){
-        P0->prefetch(ip, prefetch_id, instruction);
+        //P1.prefetch(ip, prefetch_id, instruction);
+        if(P0.last_added_address1){
+            prefetch_translation(ip, P0.last_added_address1, (int)2, 0, prefetch_id, instruction);
+        }
+        if(P0.last_added_address2){
+            prefetch_translation(ip, P0.last_added_address2, (int)2, 0, prefetch_id, instruction);
+        }
     }
     else if(prefetcher_chosen == 1){
-        P1->prefetch(ip, prefetch_id, instruction);
+        //P0.prefetch(ip, prefetch_id, instruction);
+        if(P1.last_added_address1){
+            prefetch_translation(ip, P1.last_added_address1, (int)2, 0, prefetch_id, instruction);
+        }
+        if(P1.last_added_address2){
+            prefetch_translation(ip, P1.last_added_address2, (int)2, 0, prefetch_id, instruction);
+        }
+        if(P1.last_added_address3){
+            prefetch_translation(ip, P1.last_added_address3, (int)2, 0, prefetch_id, instruction);
+        }
+        if(P1.last_added_address4){
+            prefetch_translation(ip, P1.last_added_address4, (int)2, 0, prefetch_id, instruction);
+        }
     }
     else if(prefetcher_chosen == 2){
-        P2->prefetch(ip, prefetch_id, instruction);
+        //P2.prefetch(ip, prefetch_id, instruction);
+        if(P2.last_added_address1){
+            prefetch_translation(ip, P2.last_added_address1, (int)2, 0, prefetch_id, instruction);
+        }
+        if(P2.last_added_address2){
+           prefetch_translation(ip, P2.last_added_address2, (int)2, 0, prefetch_id, instruction);
+        }
     }
     update_fake_queues(addr,ip);
     return;
@@ -368,5 +393,5 @@ void CACHE::stlb_prefetcher_cache_fill(uint64_t addr, uint32_t set, uint32_t way
 void CACHE::stlb_prefetcher_final_stats()
 {
     cout << "CPU " << cpu << " STLB arbitrary stride prefetcher final stats" << endl;
-	cout << "Degree: " << PREFETCH_DEGREE << endl;
+	// cout << "Degree: " << PREFETCH_DEGREE << endl;
 }
