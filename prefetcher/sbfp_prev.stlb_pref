@@ -1,0 +1,186 @@
+#include "cache.h"
+#include <bitset>
+
+#define PREFETCH_DEGREE 8             // Prefetch degree - you need to vary this!
+#define SAMPLER_SIZE 64               // Number of samplers
+#define FPQ_SIZE 64                    // Fake Prefetch Queue size
+#define FDT_SIZE 14                   // Free Distance Table size
+#define THRESHOLD 100
+
+class Buffer {
+    public:
+        uint64_t vpage;
+        int free_dist;
+
+        Buffer() {
+            vpage = 0;
+            free_dist = 0;
+        }
+};
+
+class FDT_entry {
+    public:
+        uint16_t counter;
+
+        FDT_entry() {
+            counter = 0;
+        }
+
+        bool update() {
+            // cout << "hi\n";
+            if (counter < 1023)
+                counter++;
+
+            return counter == 1023; // Whether to decay or not
+        }
+
+        void decay() {
+            counter = counter >> 1;
+        }
+};
+
+class FDT {
+    public:
+
+    FDT_entry fdt_entry[FDT_SIZE+1];
+    
+    void decay_entries(){
+        for(int i = 0; i <= FDT_SIZE; i++){
+            // if(i == FDT_SIZE/2) continue;
+            fdt_entry[i].decay();
+        }
+    }
+
+
+
+
+
+};
+
+Buffer sampler[SAMPLER_SIZE];
+Buffer fpq[FPQ_SIZE];
+FDT fdt;
+int fpq_idx = 0;
+int sampler_idx = 0;
+
+// ------------------------- Initialize the prefetcher ------------------------- // 
+void CACHE::stlb_prefetcher_initialize() 
+{
+	cout << "CPU " << cpu << " STLB arbitrary stride prefetcher" << endl;
+    // fpq_idx = 0;
+    // sampler_idx = 0;
+}
+
+// uint64_t p = 0;
+// int i = 0;
+// --------------- This is the main prefetcher operate function ---------------- // 
+void CACHE::stlb_prefetcher_operate(uint64_t addr, uint64_t ip, uint8_t cache_hit, uint8_t type, uint64_t prefetch_id, uint8_t instruction)
+{
+    // ------------------------ Add Arbitrary Stride pf_address logic here ----------------------- // 
+
+    // if(!cache_hit) {
+        // Only run when there is a Cache/TLB miss
+
+        // uint64_t vpage = addr >> LOG2_PAGE_SIZE;
+        if(cache_hit){
+            return;
+        }
+        
+        uint64_t vpage = addr;
+        // p = vpage;
+        // i++;
+        // if (i < 64){
+        //     cout << bitset<64>(vpage) << "       " << vpage << endl;
+        //     // return;
+        // }
+        uint64_t position = (vpage >> LOG2_PAGE_SIZE) % 8; // position of requested PTE
+        // cout << vpage << "  " << position << endl;
+        // for(int i = 0; i < PQ.SIZE; i++){
+        //     if(PQ.entry[i].full_addr){
+        //         cout << PQ.entry[i].full_addr << endl;
+        //     }
+        // }
+        assert(FPQ_SIZE == SAMPLER_SIZE);
+
+        // for (int i=0;i<15;i++) {
+        //     cout << fdt.fdt_entry[i].counter << " ";
+        // }
+        // cout << endl;
+
+        for(int i = 0; i < SAMPLER_SIZE; i++){
+            int found = 0;
+            // cout << (int)vpage - (int)sampler[i].vpage << endl;
+            // cout << "FPQ     : " << bitset<64>(fpq[i].vpage) << " " << fpq[i].vpage << endl;
+            // cout << "Sampler : " << bitset<64>(sampler[i].vpage) << " " << sampler[i].vpage << endl;
+            if((fpq[i].vpage >> LOG2_PAGE_SIZE) == (vpage >> LOG2_PAGE_SIZE)){
+                found = 1;
+                bool update_all = fdt.fdt_entry[fpq[i].free_dist + FDT_SIZE/2].update();
+                if(update_all){
+                    fdt.decay_entries();
+                }
+            }
+            if(found == 0){
+                if((sampler[i].vpage >> LOG2_PAGE_SIZE) == vpage >> LOG2_PAGE_SIZE){
+                    bool update_all = fdt.fdt_entry[sampler[i].free_dist + FDT_SIZE/2].update();
+                    if(update_all){
+                        fdt.decay_entries();
+                    }   
+                }
+            }
+        }
+
+
+
+        for(int i = 0 ; i < 8 ; i++) {      
+            int free_dist = i - position;
+            // cout << free_dist << endl;
+            if(free_dist == 0){
+                continue; // As checking for free prefetches
+            }
+            else{
+                // cout << "Idhar aaya";
+                if(fdt.fdt_entry[free_dist + FDT_SIZE/2].counter > THRESHOLD){
+                    // Put in FPQ
+                    // cout << 2 << endl;
+                    fpq[fpq_idx].vpage = ((vpage >> LOG2_PAGE_SIZE) + free_dist) << LOG2_PAGE_SIZE;
+                    fpq[fpq_idx].free_dist = free_dist;
+                    // Do index stuff
+                    fpq_idx = (fpq_idx + 1) % FPQ_SIZE;
+                    if(fpq[fpq_idx].vpage){
+                        prefetch_translation(ip, fpq[fpq_idx].vpage, (int)2, 0, prefetch_id, instruction,free_dist);
+                        // cout << fpq[fpq_idx].vpage << " pre" << endl;
+                    }
+                }
+                else {
+                    // Put in sampler
+                    // if( ((vpage >> LOG2_PAGE_SIZE) + free_dist) << LOG2_PAGE_SIZE)
+                    sampler[sampler_idx].vpage = ((vpage >> LOG2_PAGE_SIZE) + free_dist) << LOG2_PAGE_SIZE;
+                    sampler[sampler_idx].free_dist = free_dist;
+
+                    sampler_idx = (sampler_idx + 1) % SAMPLER_SIZE;
+                }
+            }
+        } 
+            return;
+}
+
+    // }
+
+    // prefetch_translation(ip, pf_address, (int)2, 0, prefetch_id, instruction);
+    
+    
+
+
+// ------------------------- DO NOT CHANGE -------------------------------- //
+void CACHE::stlb_prefetcher_cache_fill(uint64_t addr, uint32_t set, uint32_t way, uint8_t prefetch, uint64_t evicted_addr, uint32_t metadata_in)
+{
+    return;
+}
+
+void CACHE::stlb_prefetcher_final_stats()
+{
+    cout << "CPU " << cpu << " STLB arbitrary stride prefetcher final stats" << endl;
+	cout << "Degree: " << PREFETCH_DEGREE << endl;
+
+}
+// ------------------------- DO NOT CHANGE -------------------------------- //

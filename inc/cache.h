@@ -67,7 +67,7 @@ extern uint32_t PAGE_TABLE_LATENCY, SWAP_LATENCY;
 #define STLB_WAY 12
 #define STLB_RQ_SIZE 32
 #define STLB_WQ_SIZE 32
-#define STLB_PQ_SIZE 16 //changed
+#define STLB_PQ_SIZE 64 //changed
 #define STLB_MSHR_SIZE 4 //changed
 #define STLB_LATENCY 8
 
@@ -85,7 +85,7 @@ extern uint32_t PAGE_TABLE_LATENCY, SWAP_LATENCY;
 #define L1D_WAY 8 //change
 #define L1D_RQ_SIZE 64
 #define L1D_WQ_SIZE 64 
-#define L1D_PQ_SIZE 16     //	Neelu: Changed from 8 to 16.
+#define L1D_PQ_SIZE 64     //	Neelu: Changed from 8 to 16.
 #define L1D_MSHR_SIZE 16
 #define L1D_LATENCY 4 //changed
 
@@ -323,7 +323,7 @@ class CACHE : public MEMORY {
          check_mshr(PACKET *packet),
          prefetch_line(uint64_t ip, uint64_t base_addr, uint64_t pf_addr, int prefetch_fill_level, uint32_t prefetch_metadata, uint8_t train, uint8_t pf)/* Neelu: commenting, uint64_t prefetch_id)*/,
          kpc_prefetch_line(uint64_t base_addr, uint64_t pf_addr, int prefetch_fill_level, int delta, int depth, int signature, int confidence, uint32_t prefetch_metadata),
-         prefetch_translation(uint64_t ip, uint64_t pf_addr, int pf_fill_level, uint32_t prefetch_metadata, uint64_t prefetch_id, uint8_t instruction),
+         prefetch_translation(uint64_t ip, uint64_t pf_addr, int pf_fill_level, uint32_t prefetch_metadata, uint64_t prefetch_id, uint8_t instruction, uint8_t free_distance),
          check_nonfifo_queue(PACKET_QUEUE *queue, PACKET *packet, bool packet_direction); //@Vishal: Updated from check_mshr
 
     void handle_fill(),

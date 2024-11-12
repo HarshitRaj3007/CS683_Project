@@ -3708,7 +3708,7 @@ if((cache_type == IS_L1I || cache_type == IS_L1D) && reads_ready.size() == 0)
             return 0;
         }
 
-        int CACHE::prefetch_translation(uint64_t ip, uint64_t pf_addr, int pf_fill_level, uint32_t prefetch_metadata, uint64_t prefetch_id, uint8_t instruction)
+        int CACHE::prefetch_translation(uint64_t ip, uint64_t pf_addr, int pf_fill_level, uint32_t prefetch_metadata, uint64_t prefetch_id, uint8_t instruction, uint8_t free_distance = 0)
         {
             pf_requested++;
             DP ( if (warmup_complete[cpu]) {cout << "entered prefetch_translation, occupancy = " << PQ.occupancy << "SIZE=" << PQ.SIZE << endl; });
@@ -3726,6 +3726,8 @@ if((cache_type == IS_L1I || cache_type == IS_L1D) && reads_ready.size() == 0)
                 pf_packet.address = pf_addr >> LOG2_PAGE_SIZE;
                 pf_packet.full_addr = pf_addr;
                 pf_packet.full_virtual_address = pf_addr;
+                pf_packet.free_distance = free_distance;  //changed
+                
                 //pf_packet.instr_id = LQ.entry[lq_index].instr_id;
                 //pf_packet.rob_index = LQ.entry[lq_index].rob_index;
                 pf_packet.ip = ip;

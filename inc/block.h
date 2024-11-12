@@ -90,6 +90,8 @@ class PACKET {
             drc_tag_read,
 	    critical_ip_flag;	//Neelu: Adding to indicate that current packet's ip has been identified as critical.
 
+    uint8_t free_distance; //changed
+
     int fill_level, 
         pf_origin_level,
         rob_signal, 
@@ -186,6 +188,8 @@ class PACKET {
         depth = 0;
         signature = 0;
         confidence = 0;
+
+        free_distance = 0; // changed
 
 #if 0
         for (uint32_t i=0; i<ROB_SIZE; i++) {
